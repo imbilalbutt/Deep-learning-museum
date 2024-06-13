@@ -1,4 +1,4 @@
-# Advance-Deep-learning
+# Deep learning museum
 
 -> Neural transfer learning
 -> Andrew Ng deep learning exercises
