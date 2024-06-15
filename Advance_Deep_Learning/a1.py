@@ -38,8 +38,8 @@ def preprocess_and_predict(image, model, perturbation_times):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
-    image_tensor = preprocess(image)
-    input_batch = image_tensor.unsqueeze(0)
+    input_batch = preprocess(image)
+    input_tensor = input_batch.unsqueeze(0)
 
     # original_image_tensor_copy = copy.deepcopy(image)
     # batches = np.stack((original_image_tensor, original_image_tensor_copy), axis=0)
@@ -86,9 +86,10 @@ def preprocess_and_predict(image, model, perturbation_times):
         perturbed_images.append(perturbed_image_tensor.unsqueeze(0))
 
     perturbed_images_tensor = torch.cat(perturbed_images)
+    batch = torch.from_numpy(np.concatenate((input_tensor, perturbed_images_tensor), axis=0))
 
     with torch.no_grad():
-        predictions = model(perturbed_images_tensor) # .detach().numpy()
+        predictions = model(batch) # .detach().numpy()
 
     # top_pred_classes = np.argsort(predictions[0])[-5:][::-1] # Save ids of top 5 classes
 
@@ -102,9 +103,9 @@ def lime_explanation(image, model, perturbation_times=10):
 
     original_image = np.ones(num_superpixels)[np.newaxis, :]
 
-    distances = pairwise_distances(perturbations, original_image, metric='euclidean').ravel()
+    distances = pairwise_distances(perturbations, original_image, metric='euclidean').ravel().reshape(1,-1)
 
-    weights = np.exp(-distances / np.std(distances))
+    weights = np.exp(-distances / np.std(distances)).reshape(1,-1)
 
     interpretable_model = LinearRegression()
     interpretable_model.fit(perturbations, np.squeeze(predictions, axis=1), sample_weight=weights)
