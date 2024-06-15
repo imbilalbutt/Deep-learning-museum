@@ -16,7 +16,10 @@ def view_result(image, coeff, num_superpixels, superpixels):
 
     mask = np.zeros(num_superpixels)
     mask[top_features] = True  # Activate top superpixels
-    skimage.io.imshow(perturb_image_v2(image / 2 + 0.5, mask, superpixels))
+    # skimage.io.imshow(perturb_image_v2(image / 2 + 0.5, mask, superpixels))
+    skimage.io.imshow(perturb_image_v2(np.array(image) / 2 + 0.5, mask, superpixels))
+    # perturbed_squeezed_tensor * 255).permute(1, 2, 0).byte().numpy(),
+    skimage.io.show()
 
 
 def perturb_image_v2(img, perturbation, segments):
@@ -104,7 +107,7 @@ def lime_explanation(image, model, perturbation_times=10):
 
     explanation = interpretable_model.coef_
 
-    # num_top_features = 4
+
     # view_result(image, explanation, num_superpixels, superpixels_or_segments)
 
     return explanation, perturbed_images
@@ -116,7 +119,7 @@ if __name__ == "__main__":
     img2 = Image.open('.\\images\\1024px-Alte-universitaets-bibliothek_universitaet-erlangen.jpg')
     img3 = Image.open('.\\images\\1024px-Erlangen_Blick_vom_Burgberg_auf_die_Innenstadt_2009_001.jpg')
 
-    img1.show()
+    # img1.show()
 
     # img1 = plt.imread('.\\images\\1024px-Schloss-Erlangen02.jpg')
     # img2 = plt.imread('.\\images\\1024px-Alte-universitaets-bibliothek_universitaet-erlangen.jpg')
@@ -135,7 +138,8 @@ if __name__ == "__main__":
     for i in range (perturbation_time):
         # skimage.io.imshow(perturbed_images[i])
         perturbed_squeezed_tensor = torch.squeeze(perturbed_images[i], dim=0)
-        plt.imshow((perturbed_squeezed_tensor * 255).permute(1, 2, 0).byte().numpy()) # .dtype(np.uint8))
+        plt.imshow((perturbed_squeezed_tensor).permute(1, 2, 0).byte().numpy()) # .dtype(np.uint8))
+        # plt.imshow((perturbed_squeezed_tensor * 255).permute(1, 2, 0).byte().numpy())
         plt.axis('off')  # Turn off axis labels
         plt.show()
 
