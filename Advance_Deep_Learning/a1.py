@@ -1,38 +1,25 @@
 import torch
 import numpy as np
 import copy
-import matplotlib.pyplot as plt
-from skimage.transform import resize
 from skimage.segmentation import slic, quickshift
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import pairwise_distances
-
-# Load image data
-img1 = plt.imread('.\\images\\1024px-Schloss-Erlangen02.jpg')
-img2 = plt.imread('.\\images\\1024px-Alte-universitaets-bibliothek_universitaet-erlangen.jpg')
-img3 = plt.imread('.\\images\\1024px-Erlangen_Blick_vom_Burgberg_auf_die_Innenstadt_2009_001.jpg')
-
-# Load Inception v3 neural network model
-model = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained=True)
+from torchvision import transforms
+from PIL import Image
+import skimage.io
+import matplotlib.pyplot as plt
 
 
-# def perturb_image_v1(image, superpixels_or_segments):
-#     # Generate segmentation for image
-#     fudged_image = image.copy()
-#
-#     # num_superpixels = np.unique(superpixels_or_segments).shape[0]
-#
-#     for x in np.unique(superpixels_or_segments):
-#         fudged_image[superpixels_or_segments == x] = (
-#             np.mean(image[superpixels_or_segments == x][:, 0]),
-#             np.mean(image[superpixels_or_segments == x][:, 1]),
-#             np.mean(image[superpixels_or_segments == x][:, 2]))
-#
-#     plt.imshow(image)
-#
-#     plt.imshow(fudged_image)
-#
-#     return fudged_image, superpixels_or_segments
+def view_result(image, coeff, num_superpixels, superpixels):
+    num_top_features = 5
+    top_features = np.argsort(coeff)[-num_top_features:]
+
+    mask = np.zeros(num_superpixels)
+    mask[top_features] = True  # Activate top superpixels
+    # skimage.io.imshow(perturb_image_v2(image / 2 + 0.5, mask, superpixels))
+    skimage.io.imshow(perturb_image_v2(np.array(image) / 2 + 0.5, mask, superpixels))
+    # perturbed_squeezed_tensor * 255).permute(1, 2, 0).byte().numpy(),
+    skimage.io.show()
 
 
 def perturb_image_v2(img, perturbation, segments):
@@ -46,104 +33,130 @@ def perturb_image_v2(img, perturbation, segments):
     return perturbed_image
 
 
-def predict(image, model, perturbation_times):
-    original_image_tensor = torch.from_numpy(image).float().permute(2, 0, 1).unsqueeze(0)
-    # Method 1
-    np.random.seed(222)
-    original_prediction = model(original_image_tensor)
+def preprocess_and_predict(image, model, perturbation_times):
 
-    # Method 2: np.transpose(image[np.newaxis, :, :, :], (0, 3, 1, 2))
-    # image = image[np.newaxis, :, :, :]
-    # image = np.transpose(image, (0, 3, 1, 2))
-    # model(image[np.newaxis,:,:,:])
+    preprocess = transforms.Compose([
+        # transforms.ToPILImage(),
+        transforms.Resize(299),
+        transforms.CenterCrop(299),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
-    # top_pred_classes = original_prediction[0].argsort()[-5:][::-1]     #Index of top 5 classes
-    # decode_predictions(original_prediction)[0]  # Print top 5 classes
+    perturbed_preprocess = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(299),
+        transforms.CenterCrop(299),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
-    superpixels_or_segments = quickshift(image, kernel_size=3, max_dist=200, ratio=0.4)
+    superpixels_or_segments = quickshift(image, kernel_size=3, ratio=0.4)
 
     num_superpixels = np.unique(superpixels_or_segments).shape[0]
-    top_pred_classes = 0
 
     # Generate perturbations
     perturbations = np.random.binomial(1, 0.5, size=(perturbation_times, num_superpixels))
 
     perturbed_images = []
-    predictions = []
     for i in range(perturbation_times):
-        perturbed_image = perturb_image_v2(image, perturbations[i], superpixels_or_segments)
-        perturbed_images.append(perturbed_image)
+        perturbed_image = perturb_image_v2(np.array(image), perturbations[i], superpixels_or_segments)
+        # skimage.io.imshow(perturbed_image/2+0.5)
+        perturbed_image_tensor = perturbed_preprocess(perturbed_image)
+        perturbed_images.append(perturbed_image_tensor.unsqueeze(0))
 
-        # print("Perturbed_image (pert) =", pert)
-        # plt.imshow(perturbed_image)
+    perturbed_images_tensor = torch.cat(perturbed_images)
 
-        perturbed_image_tensor = torch.from_numpy(perturbed_image).float().permute(2, 0, 1).unsqueeze(0)
-        np.random.seed(222)
-        prediction = model(perturbed_image_tensor)  # model.predict(image[np.newaxis,:,:,:])
+    input_preprocess_image = preprocess(image)
+    input_tensor = input_preprocess_image.unsqueeze(0)
 
-        top_pred_classes = prediction[0].argsort()[-5:][::1]  # Save ids of top 5 classes
+    batch = torch.from_numpy(np.concatenate((input_tensor, perturbed_images_tensor), axis=0))
 
-        # print("prediction = ", (prediction))
-        # print(type(prediction))
-        # print(prediction.numpy())
-        predictions.append(prediction.detach().numpy())
-    # print((predictions))
+    with torch.no_grad():
+        predictions = model(batch) # .detach().numpy()
 
-    # perturbed_images = np.array(perturbed_images) # Convert from (701, 1024, 3) ---> to (1, 701, 1024, 3)
-    # predictions = np.array(predictions)  # .detach().numpy())
+    # top_pred_classes = np.argsort(predictions[0])[-5:][::1] # Save ids of top 5 classes
 
-    return perturbed_images, predictions, top_pred_classes, perturbations, num_superpixels
+    # Tensor of shape 1000, with confidence scores over ImageNet's 1000 classes
+    # print(predictions[0])
+
+    # The output has unnormalized scores. To get probabilities, you can run a softmax on it.
+    probabilities = torch.nn.functional.softmax(predictions[0], dim=0)
+    # print(probabilities)
+
+    return predictions, perturbations, num_superpixels, superpixels_or_segments, perturbed_images
 
 
-def lime_explanation(image, model, perturbation_times=1):
-    perturbed_images, predictions, top_pred_classes, perturbations, num_superpixels = predict(image, model,
-                                                                                              perturbation_times)
+def lime_explanation(image, model, perturbation_times=10):
+    (predictions, perturbations, num_superpixels, superpixels_or_segments, perturbed_images) = preprocess_and_predict(image, model, perturbation_times)
 
-    original_image_flat = image.flatten().reshape(1, -1)
+    original_image = np.ones(num_superpixels)[np.newaxis, :]
 
-    print("original_image_flat")
-    print(original_image_flat.shape)
-    plt.imshow(original_image_flat)
-    print("zzzzzzzzzzzzzzzzzzzzzzzz")
+    distances = pairwise_distances(perturbations, original_image, metric='euclidean').ravel() # .reshape(1,-1)
 
-    # perturbed_images_flat - original_image_flat EVALUATE
-    perturbed_images_flat = []
-    for i in range(perturbation_times):
-        perturbed_images_flat.append(perturbed_images[i].reshape(1, -1))
+    weights = np.exp(-distances / np.std(distances)) #.reshape(1,-1)
+    # weights = np.transpose(np.exp(-distances / np.std(distances)) #.reshape(1,-1)
 
-    # distances = np.empty((1, perturbation_times), dtype=float, order='C', like=None) # np.zeros((1,
-    # perturbation_times)) for i in range(perturbation_times): distance = pairwise_distances(perturbed_images_flat[
-    # i], original_image_flat, metric='euclidean').ravel()
-    original_image = np.ones(num_superpixels)[np.newaxis, :]  #Perturbation with all superpixels enabled
-    distances = pairwise_distances(perturbations, original_image, metric='euclidean').ravel()
-    # if i is 0:
-    #     distances = distance
-    # else:
-    #     distances = np.append(distances, distance, axis=0)
-    print("distances = ", type(distances))
-    weights = np.exp(-distances / np.std(distances))
+    top_pred_classes = predictions[0].argsort()[-5:][::1]
+    class_to_explain = top_pred_classes[0]
 
-    # kernel_width = 0.25
-    # weights = np.sqrt(np.exp(-(distances ** 2) / kernel_width ** 2))  # Kernel function
-
-    print("weights = ", type(weights))
     interpretable_model = LinearRegression()
-    interpretable_model.fit(perturbations, np.squeeze(predictions, axis=1), sample_weight=weights)
-
-    # .fit(X=perturbations, y=predictions[:,:,class_to_explain], sample_weight=weights)
-    # coeff = interpretable_model.coef_[0]
+    # interpretable_model.fit(perturbations, np.squeeze(predictions, axis=1), sample_weight=weights)
+    # interpretable_model.fit(perturbations, predictions[1:].detach().numpy(), sample_weight=weights)
+    interpretable_model.fit(X=perturbations, y=predictions[1:, class_to_explain], sample_weight=weights)
 
     explanation = interpretable_model.coef_
 
-    return explanation.reshape(image.shape)
+
+    # view_result(image, explanation, num_superpixels, superpixels_or_segments)
+
+    return explanation, perturbed_images
 
 
 if __name__ == "__main__":
-    Xi = resize(img1, (299, 299))
-    Xi = (Xi - 0.5) * 2  # Inception pre-processing
+    # Load image data
+    img1 = Image.open('.\\images\\1024px-Schloss-Erlangen02.jpg')
+    img2 = Image.open('.\\images\\1024px-Alte-universitaets-bibliothek_universitaet-erlangen.jpg')
+    img3 = Image.open('.\\images\\1024px-Erlangen_Blick_vom_Burgberg_auf_die_Innenstadt_2009_001.jpg')
 
-    # image = np.array(img1)
+    # img1.show()
+
+    # img1 = plt.imread('.\\images\\1024px-Schloss-Erlangen02.jpg')
+    # img2 = plt.imread('.\\images\\1024px-Alte-universitaets-bibliothek_universitaet-erlangen.jpg')
+    # img3 = plt.imread('.\\images\\1024px-Erlangen_Blick_vom_Burgberg_auf_die_Innenstadt_2009_001.jpg')
+
+    # Load Inception v3 neural network model
+    model = torch.hub.load('pytorch/vision:v0.10.0', 'inception_v3', pretrained=True)
+
     model.aux_logits = False
-    explanation = lime_explanation(Xi, model, perturbation_times=2)
+
+    # model.drop_last = True
+    perturbation_time = 10
+    explanation, perturbed_images = lime_explanation(img1, model, perturbation_times=perturbation_time)
+
+    plt.figure()
+    for i in range (perturbation_time):
+        # skimage.io.imshow(perturbed_images[i])
+        perturbed_squeezed_tensor = torch.squeeze(perturbed_images[i], dim=0)
+        plt.imshow((perturbed_squeezed_tensor).permute(1, 2, 0).byte().numpy()) # .dtype(np.uint8))
+        # plt.imshow((perturbed_squeezed_tensor * 255).permute(1, 2, 0).byte().numpy())
+        plt.axis('off')  # Turn off axis labels
+        plt.show()
 
     print("Explanation:", explanation)
+
+
+
+
+def get_prediction_labels(probabilities):
+    file_url = "https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt"
+    # Download ImageNet labels
+
+    # Read the categories
+    with open("..//imagenet_classes.txt", "r") as f:
+        categories = [s.strip() for s in f.readlines()]
+
+    # Show top categories per image
+    top5_prob, top5_catid = torch.topk(probabilities, 5)
+    for i in range(top5_prob.size(0)):
+        print(categories[top5_catid[i]], top5_prob[i].item())
