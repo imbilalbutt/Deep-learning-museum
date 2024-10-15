@@ -1,4 +1,5 @@
 from .Base import BaseLayer
+import numpy as np
 
 
 class Conv(BaseLayer):
@@ -10,8 +11,13 @@ class Conv(BaseLayer):
         self.stride_shape = stride_shape
         self.convolution_shape = convolution_shape
         self.num_kernels = num_kernels
-        self.weights = None
-        self.bias = None
+        self.weights = np.random.uniform(0, 1, (num_kernels, *convolution_shape))
+        self.bias = np.random.random(num_kernels)
+
+        self._padding = "same"
+        self._optimizer = None
+        self._gradient_weights = None
+        self._gradient_bias = None
 
     def forward(self, input_tensor):
         self.input_tensor = input_tensor
@@ -34,3 +40,16 @@ class Conv(BaseLayer):
     @gradient_bias.setter
     def gradient_bias(self, gradient_bias):
         self._gradient_bias = gradient_bias
+
+    @ property
+    def optimizer(self):
+        return self._optimizer
+
+    @ optimizer.setter
+    def optimizer(self, optimizer):
+        self._optimizer = optimizer
+
+    def initialize(self, weights_initializer, bias_initializer):
+        self.weights = weights_initializer.initialize(self.weights.shape, np.prod(self.conv_shape),
+                                                      self.num_kernels * np.prod(self.conv_shape[1:]))
+        self.bias = bias_initializer.initialize(self.bias.shape, 1, self.num_kernels)
