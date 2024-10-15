@@ -5,3 +5,4 @@
 **/.idea
 Advance_Deep_Learning/.ipynb_checkpoints/
 Advance_Deep_Learning/.ipynb_checkpoints/**
+**/__pycache__/
