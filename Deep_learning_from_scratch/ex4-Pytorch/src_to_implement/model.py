@@ -1,4 +1,4 @@
-from torch.nn import BatchNorm2d, Conv2d, ReLU, MaxPool2d, Sequential, AdaptiveAvgPool2d, Linear, Sigmoid
+from torch.nn import Sequential, Conv2d, BatchNorm2d, ReLU, MaxPool2d, AdaptiveAvgPool2d, Linear, Sigmoid
 from torch.nn.modules.flatten import Flatten
 import torch
 
