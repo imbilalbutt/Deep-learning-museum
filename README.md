@@ -89,8 +89,8 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## 📧 Contact
 For academic or professional inquiries:
-![Email](bilal.ahmad125@yahoo.com)
-![LinkedIn Profile](https://www.linkedin.com/in/imbilalbutt/)
+[Email](mailto:bilal.ahmad125@yahoo.com)
+[LinkedIn Profile](https://www.linkedin.com/in/imbilalbutt/)
 ```
 
 Key Improvements:
