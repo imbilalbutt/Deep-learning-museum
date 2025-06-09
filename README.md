@@ -89,6 +89,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## 📧 Contact
 For academic or professional inquiries:
+
 ✉️ **Email**: [bilal.ahmad125@yahoo.com](mailto:bilal.ahmad.butt@fau.de)  
 💼 **LinkedIn**: [Bilal Ahmad Butt](https://www.linkedin.com/in/imbilalbutt/)  
 🐦 **Twitter**: [@imbilalbutt](https://twitter.com/imbilalbutt)
