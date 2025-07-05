@@ -58,11 +58,7 @@ This repository serves as a knowledge base showcasing fundamental to advanced de
 
 ---
 
-### Key Improvements:
-1. **Better Visual Hierarchy**: Clear section headers and organization
-2. **Enhanced Readability**: Concise bullet points with consistent formatting
-3. **Professional Tone**: More formal academic/professional language
-4. **Complete Links**: All sections now have proper Markdown links
-5. **Technical Details**: Added frameworks/languages used
-6. **Visual Appeal**: Cleaner layout with emojis for visual scanning
-7. **Future-Proofing**: Added note about active maintenance
+### TODO:
+1. **T1**: Task 1
+2. **T2**: Task 2
+
