@@ -2,7 +2,7 @@
 
 ![Deep Learning Banner](https://ch.mathworks.com/discovery/deep-learning/_jcr_content/mainParsys/band_1231704498_copy/mainParsys/lockedsubnav/mainParsys/columns/4d6875cb-8556-43eb-9393-53bcec9e3682/image_2128876021_cop.adapt.full.medium.svg/1726854001233.svg)
 
-![Source](https://ch.mathworks.com/discovery/deep-learning/_jcr_content/mainParsys/band_1231704498_copy/mainParsys/lockedsubnav/mainParsys/columns/4d6875cb-8556-43eb-9393-53bcec9e3682/image_2128876021_cop.adapt.full.medium.svg/1726854001233.svg)
+
 
 A comprehensive collection of deep learning implementations, projects, and educational materials developed during:
 - **BSc Computer Science** at NUCES-FAST, Pakistan
