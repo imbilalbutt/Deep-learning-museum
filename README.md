@@ -17,7 +17,7 @@ This repository serves as a knowledge base showcasing fundamental to advanced de
 ## 🗄️ Repository Structure
 
 ### 🔬 Advanced Deep Learning
-[`/Advance_Deep_Learning`](https://github.com/imbilalbutt/Deep-learning-museum/tree/master/Advance_Deep_Learning)
+[`/Advance_Deep_Learning`](https://github.com/imbilalbutt/Deep-learning-museum/tree/master/Advance_DL)
 - Explainable AI (XAI): LIME, SHAP
 - Sequence Modeling: Transformers, Attention Mechanisms
 - Generative Models: GANs, VAEs
