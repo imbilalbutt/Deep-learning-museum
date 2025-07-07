@@ -4,6 +4,8 @@ from torch import nn
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
 from torch import optim
+import numpy
+
 
 from my_models_skeleton import ViT, CrossViT   # rename the skeleton file for your implementation / comment before testing for ResNet
 
@@ -64,15 +66,13 @@ def run(args):
 									transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225) ) 
                                     ])
 
-    # TODO: adjust folder
-    dataset = datasets.CIFAR10('/adjust/your/cifar10/folder', download=True, train=True, transform=transform)
+    dataset = datasets.CIFAR10('/Users/imbilalbutt/Developer/Project/cifar', download=True, train=True, transform=transform)
     trainset, valset = torch.utils.data.random_split(dataset, [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)])
     trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
     valloader = DataLoader(valset, batch_size=64, shuffle=False)
 
     # Download and load the test data
-    # TODO: adjust folder
-    testset = datasets.CIFAR10('/adjust/your/cifar10/folder/', download=True, train=False, transform=transform)
+    testset = datasets.CIFAR10('/Users/imbilalbutt/Developer/Project/cifar-test', download=True, train=False, transform=transform)
     testloader = DataLoader(testset, batch_size=64, shuffle=True)
 
     # Build a feed-forward network
