@@ -1,0 +1,12 @@
+numpy~=1.25.2
+torch~=2.2.2
+tqdm~=4.67.1
+torchvision~=0.17.2
+pandas~=2.3.0
+einops~=0.8.1
+matplotlib~=3.9.4
+pillow~=11.3.0
+scikit-image~=0.24.0
+diffusers~=0.34.0
+ipython~=8.18.1
+scipy~=1.13.1

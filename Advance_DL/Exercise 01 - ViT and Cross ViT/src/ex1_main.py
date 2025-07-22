@@ -7,7 +7,7 @@ from torch import optim
 import numpy
 
 
-from my_models_skeleton import ViT, CrossViT   # rename the skeleton file for your implementation / comment before testing for ResNet
+from models import ViT, CrossViT   # rename the skeleton file for your implementation / comment before testing for ResNet
 
 
 def parse_args():
@@ -80,9 +80,10 @@ def run(args):
     if args.model == "r18":
         model = models.resnet18(pretrained=False)
     elif args.model == "vit":
+        # pass
         model = ViT(image_size = 32, patch_size = 8, num_classes = 10, dim = 64,
                     depth = 2, heads = 8, mlp_dim = 128, dropout = 0.1,
-                    emb_dropout = 0.1) 
+                    emb_dropout = 0.1)
     elif args.model == "cvit":
         model = CrossViT(image_size = 32, num_classes = 10, sm_dim = 64, 
                          lg_dim = 128, sm_patch_size = 8, sm_enc_depth = 2,

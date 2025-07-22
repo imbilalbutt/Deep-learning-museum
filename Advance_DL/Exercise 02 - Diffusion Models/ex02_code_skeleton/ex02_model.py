@@ -214,7 +214,15 @@ class Unet(nn.Module):
         )
 
         # TODO: Implement a class embedder for the conditional part of the classifier-free guidance & define a default
-
+        if class_free_guidance:
+            assert num_classes is not None, "num_classes must be specified for class-free guidance"
+            self.class_mlp = nn.Sequential(
+                nn.Embedding(num_classes, dim),
+                nn.Linear(dim, time_dim),
+                nn.GELU(),
+                nn.Linear(time_dim, time_dim),
+            )
+            self.null_class_emb = nn.Parameter(torch.randn(time_dim))
 
         # layers
         self.downs = nn.ModuleList([])
